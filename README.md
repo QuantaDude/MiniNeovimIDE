@@ -25,6 +25,8 @@ No hidden magic.
 
 - Neovim 0.12.0
 - lua-language-server
+- ripgrep
 - typescript-language-server
 - clangd
 - pyright
+

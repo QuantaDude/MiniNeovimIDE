@@ -6,6 +6,7 @@ require("config.lsp")
 require("config.completion")
 require("config.format")
 require("config.ui")
+require("config.pickers")
 require("config.autocmds")
 
 require("config.keymaps")
@@ -18,4 +19,3 @@ vim.lsp.handlers["textDocument/hover"] =
       border = "rounded",
       max_width = 80,
     })
-

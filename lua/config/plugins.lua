@@ -8,5 +8,7 @@ vim.pack.add({
   "https://github.com/kristijanhusak/vim-dadbod-ui",
   "https://github.com/kristijanhusak/vim-dadbod-completion",
   "https://github.com/abidibo/nvim-httpyac",
+  "https://github.com/nvim-telescope/telescope.nvim",
+  "https://github.com/nvim-lua/plenary.nvim",
   { src = "https://github.com/nvim-treesitter/nvim-treesitter", version = "main" },
 })

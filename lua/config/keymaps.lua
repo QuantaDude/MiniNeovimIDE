@@ -95,9 +95,26 @@ vim.keymap.set("n", "<leader>ba", function()
   vim.cmd("%bd")
 end, { desc = "Close all buffers (safe)" })
 
-vim.keymap.set("n", "<leader>t", function()
+vim.keymap.set("n", "<leader>tn", function()
+  vim.cmd("enew | terminal")
+end, { desc = "New terminal (current window)" })
+
+vim.keymap.set("n", "<leader>th", function()
   vim.cmd("botright split | resize 15 | terminal")
 end, { desc = "Terminal (bottom)" })
+
+vim.keymap.set("n", "<leader>tv", function()
+  vim.cmd("botright vsplit | vertical resize 80 | terminal")
+end, { desc = "New terminal (vertical split)" })
+
+vim.keymap.set("t", "<Esc>", [[<C-\><C-n>]], {
+  desc = "Exit terminal mode",
+})
+vim.keymap.set("n", "<leader>tc", function()
+  if vim.bo.buftype == "terminal" then
+    vim.cmd("bd!")
+  end
+end, { desc = "Close terminal buffer" })
 
 -- open DB UI
 vim.keymap.set("n", "<leader>db", "<cmd>DBUI<cr>", { desc = "Dadbod UI" })
@@ -105,3 +122,27 @@ vim.keymap.set("n", "<leader>db", "<cmd>DBUI<cr>", { desc = "Dadbod UI" })
 -- run query under cursor / selection
 vim.keymap.set("n", "<leader>dq", "<cmd>DB<cr>", { desc = "Run query" })
 vim.keymap.set("v", "<leader>dq", "<cmd>DB<cr>", { desc = "Run selected query" })
+
+
+local builtin = require("telescope.builtin")
+
+-- File finder
+vim.keymap.set("n", "<leader>ff", builtin.find_files, {
+  desc = "Find files",
+})
+
+-- Word / text search
+vim.keymap.set("n", "<leader>fw", builtin.live_grep, {
+  desc = "Search words",
+})
+
+-- Open buffers
+vim.keymap.set("n", "<leader>fb", builtin.buffers, {
+  desc = "Find buffers",
+})
+
+-- Resize windows
+vim.keymap.set("n", "<C-Up>", "<cmd>resize +2<cr>", { desc = "Increase window height" })
+vim.keymap.set("n", "<C-Down>", "<cmd>resize -2<cr>", { desc = "Decrease window height" })
+vim.keymap.set("n", "<C-Left>", "<cmd>vertical resize -2<cr>", { desc = "Decrease window width" })
+vim.keymap.set("n", "<C-Right>", "<cmd>vertical resize +2<cr>", { desc = "Increase window width" })
