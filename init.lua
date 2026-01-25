@@ -128,15 +128,6 @@ local function run_prettier()
 end
 
 
-local function lsp_can_format()
-  for _, client in ipairs(vim.lsp.get_clients({ bufnr = 0 })) do
-    if client.server_capabilities.documentFormattingProvider then
-      return true
-    end
-  end
-  return false
-end
-
 local function format_buffer()
   local ft = vim.bo.filetype
 
@@ -183,15 +174,25 @@ end
 
 print("nvim-minimal loaded")
 
--- install mini.nvim (contains mini.files)
 vim.pack.add({
   "https://github.com/echasnovski/mini.files",
   "https://github.com/echasnovski/mini.comment",
-  "https://github.com/echasnovski/mini.icons"
+  "https://github.com/echasnovski/mini.icons",
+  "https://github.com/echasnovski/mini.diff",
 })
 require('mini.icons').setup()
 require('mini.comment').setup()
 require('mini.files').setup()
+require('mini.diff').setup({
+  view = {
+    style = "sign",
+  },
+  signs = {
+    add = { text = "" },
+    change = { text = "" },
+    delete = { text = "" },
+  },
+})
 -- setup mini.files
 vim.keymap.set("n", "<leader>e", function()
   local mf = require("mini.files")
