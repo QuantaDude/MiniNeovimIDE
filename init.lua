@@ -8,7 +8,178 @@ vim.opt.relativenumber = true
 vim.opt.expandtab = true
 vim.opt.shiftwidth = 2
 vim.opt.tabstop = 2
-vim.opt.updatetime = 500
+vim.opt.updatetime = 300
+vim.lsp.completion.enable = true
+vim.env.EMSDK_QUIET = "1"
+
+local function run_clang_format()
+  local buf = vim.api.nvim_get_current_buf()
+
+  local input = table.concat(
+    vim.api.nvim_buf_get_lines(buf, 0, -1, false),
+    "\n"
+  )
+
+  local stdout = {}
+  local stderr = {}
+
+  local job_id = vim.fn.jobstart(
+    { "clang-format" },
+    {
+      stdin = "pipe",
+      stdout_buffered = true,
+      stderr_buffered = true,
+
+      on_stdout = function(_, data)
+        if data then
+          vim.list_extend(stdout, data)
+        end
+      end,
+
+      on_stderr = function(_, data)
+        if data then
+          vim.list_extend(stderr, data)
+        end
+      end,
+
+      on_exit = function(_, code)
+        if code ~= 0 then
+          vim.schedule(function()
+            vim.notify(
+              table.concat(stderr, "\n"),
+              vim.log.levels.ERROR
+            )
+          end)
+          return
+        end
+
+        vim.schedule(function()
+          vim.api.nvim_buf_set_lines(buf, 0, -1, false, stdout)
+        end)
+      end,
+    }
+  )
+
+  if job_id <= 0 then
+    vim.notify("Failed to start clang-format", vim.log.levels.ERROR)
+    return
+  end
+
+  vim.fn.chansend(job_id, input)
+  vim.fn.chanclose(job_id, "stdin")
+end
+
+local function run_prettier()
+  local buf = vim.api.nvim_get_current_buf()
+  local fname = vim.api.nvim_buf_get_name(buf)
+
+  local input = table.concat(
+    vim.api.nvim_buf_get_lines(buf, 0, -1, false),
+    "\n"
+  )
+
+  local stdout = {}
+  local stderr = {}
+
+  local job_id = vim.fn.jobstart(
+    { "prettier", "--stdin-filepath", fname },
+    {
+      stdin = "pipe",
+      stdout_buffered = true,
+      stderr_buffered = true,
+
+      on_stdout = function(_, data)
+        if data then
+          vim.list_extend(stdout, data)
+        end
+      end,
+
+      on_stderr = function(_, data)
+        if data then
+          vim.list_extend(stderr, data)
+        end
+      end,
+
+      on_exit = function(_, code)
+        if code ~= 0 then
+          vim.schedule(function()
+            vim.notify(
+              table.concat(stderr, "\n"),
+              vim.log.levels.ERROR
+            )
+          end)
+          return
+        end
+
+        vim.schedule(function()
+          vim.api.nvim_buf_set_lines(buf, 0, -1, false, stdout)
+        end)
+      end,
+    }
+  )
+
+  if job_id <= 0 then
+    vim.notify("Failed to start Prettier", vim.log.levels.ERROR)
+    return
+  end
+
+  vim.fn.chansend(job_id, input)
+  vim.fn.chanclose(job_id, "stdin")
+end
+
+
+local function lsp_can_format()
+  for _, client in ipairs(vim.lsp.get_clients({ bufnr = 0 })) do
+    if client.server_capabilities.documentFormattingProvider then
+      return true
+    end
+  end
+  return false
+end
+
+local function format_buffer()
+  local ft = vim.bo.filetype
+
+
+  -- =========================
+  -- C / C++ → clang-format
+  -- =========================
+  if (ft == "c" or ft == "cpp")
+      and vim.fn.executable("clang-format") == 1 then
+    run_clang_format()
+    return
+  end
+  -- =========================
+  -- JS / TS / Web → Prettier
+  -- =========================
+  if vim.tbl_contains({
+        "javascript",
+        "javascriptreact",
+        "typescript",
+        "typescriptreact",
+        "json",
+        "css",
+        "scss",
+        "html",
+        "markdown",
+      }, ft) and vim.fn.executable("prettier") == 1 then
+    run_prettier()
+    return
+  end
+
+
+  -- =========================
+  -- Fallback → LSP
+  -- =========================
+  for _, client in ipairs(vim.lsp.get_clients({ bufnr = 0 })) do
+    if client.server_capabilities.documentFormattingProvider then
+      vim.lsp.buf.format({ async = false })
+      return
+    end
+  end
+end
+
+
 
 print("nvim-minimal loaded")
 
@@ -16,8 +187,11 @@ print("nvim-minimal loaded")
 vim.pack.add({
   "https://github.com/echasnovski/mini.files",
   "https://github.com/echasnovski/mini.comment",
+  "https://github.com/echasnovski/mini.icons"
 })
-
+require('mini.icons').setup()
+require('mini.comment').setup()
+require('mini.files').setup()
 -- setup mini.files
 vim.keymap.set("n", "<leader>e", function()
   local mf = require("mini.files")
@@ -27,7 +201,7 @@ vim.keymap.set("n", "<leader>e", function()
   else
     mf.open()
   end
-end,{ desc = "Toggle file explorer (mini.files)" })
+end, { desc = "Toggle file explorer (mini.files)" })
 
 vim.api.nvim_create_autocmd("User", {
   pattern = "MiniFilesAction",
@@ -39,12 +213,12 @@ vim.api.nvim_create_autocmd("User", {
 })
 
 -- Theme
-vim.pack.add({ "https://github.com/sainnhe/everforest"})
+vim.pack.add({ "https://github.com/sainnhe/everforest" })
 vim.cmd.packadd("everforest")
 
 -- MUST be set before colorscheme
 vim.g.everforest_background = "soft"
-vim.g.everforest_enable_italic = 1        -- optional
+vim.g.everforest_enable_italic = 1 -- optional
 vim.g.everforest_disable_italic_comment = 0
 vim.g.everforest_better_performance = 1
 
@@ -93,6 +267,18 @@ vim.api.nvim_create_autocmd("PackChanged", {
   end
 })
 
+vim.api.nvim_create_autocmd("LspAttach", {
+  callback = function(ev)
+    local client = vim.lsp.get_client_by_id(ev.data.client_id)
+
+    if not client then return end
+
+    -- disable formatting for servers we don't want
+    if client.name == "tsserver" then
+      client.server_capabilities.documentFormattingProvider = false
+    end
+  end,
+})
 
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "lua",
@@ -175,10 +361,10 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 vim.lsp.handlers["textDocument/hover"] =
-  vim.lsp.with(vim.lsp.handlers.hover, {
-    border = "rounded",
-    max_width = 80,
-  })
+    vim.lsp.with(vim.lsp.handlers.hover, {
+      border = "rounded",
+      max_width = 80,
+    })
 
 vim.api.nvim_create_autocmd("CursorHold", {
   callback = function()
@@ -203,6 +389,23 @@ vim.api.nvim_create_autocmd("CursorHold", {
     else
       vim.lsp.buf.hover()
     end
+  end,
+})
+vim.api.nvim_create_autocmd("CursorHoldI", {
+  callback = function()
+    -- only show if an LSP is attached
+    if not vim.lsp.get_clients({ bufnr = 0 })[1] then
+      return
+    end
+
+    -- don't open if a floating window already exists
+    for _, win in ipairs(vim.api.nvim_list_wins()) do
+      if vim.api.nvim_win_get_config(win).relative ~= "" then
+        return
+      end
+    end
+
+    vim.lsp.buf.signature_help()
   end,
 })
 
@@ -251,13 +454,18 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
+vim.api.nvim_create_autocmd("BufWritePre", {
+  callback = format_buffer,
+})
+
+vim.keymap.set("i", "<C-Space>", "<C-x><C-o>", { desc = "LSP completion" })
 
 vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })
 vim.keymap.set("n", "gr", vim.lsp.buf.references, { desc = "References" })
 vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { desc = "Implementation" })
 vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, { desc = "Rename symbol" })
 vim.keymap.set("n", "<leader>v", "<cmd>vsplit<cr>", { desc = "Vertical split" })
-vim.keymap.set("n", "<leader>h", "<cmd>split<cr>",  { desc = "Horizontal split" })
+vim.keymap.set("n", "<leader>h", "<cmd>split<cr>", { desc = "Horizontal split" })
 vim.keymap.set("n", "<C-h>", "<C-w>h")
 vim.keymap.set("n", "<C-j>", "<C-w>j")
 vim.keymap.set("n", "<C-k>", "<C-w>k")
@@ -275,12 +483,12 @@ vim.keymap.set("v", "<leader>/", function()
   local start_line = vim.fn.getpos("'<")[2]
   local end_line   = vim.fn.getpos("'>")[2]
 
-  local s = math.min(start_line, end_line)
-  local e = math.max(start_line, end_line)
+  local s          = math.min(start_line, end_line)
+  local e          = math.max(start_line, end_line)
 
-  local last = vim.api.nvim_buf_line_count(0)
-  s = math.max(1, math.min(s, last))
-  e = math.max(1, math.min(e, last))
+  local last       = vim.api.nvim_buf_line_count(0)
+  s                = math.max(1, math.min(s, last))
+  e                = math.max(1, math.min(e, last))
 
   require("mini.comment").toggle_lines(s, e)
 end, { desc = "Toggle comment (selection)" })
@@ -320,7 +528,7 @@ end, { desc = "Prev warning" })
 vim.keymap.set("n", "<leader>ba", function()
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
     if vim.api.nvim_buf_is_loaded(buf)
-       and vim.api.nvim_buf_get_option(buf, "modified") then
+        and vim.api.nvim_buf_get_option(buf, "modified") then
       vim.notify("Unsaved buffers exist", vim.log.levels.WARN)
       return
     end
