@@ -1,4 +1,4 @@
-# nvim-minimal (Neovim 0.12+)
+# Mini Neovim IDE (Neovim 0.12+)
 
 A **minimal, explicit Neovim configuration** to experiment with **Neovim 0.12 nightly** features:
 
@@ -6,6 +6,7 @@ A **minimal, explicit Neovim configuration** to experiment with **Neovim 0.12 ni
 - native LSP (`vim.lsp.start`)
 - Tree-sitter
 - `mini.files` as the file explorer
+- sane keybinds
 
 No plugin manager frameworks.  
 No abstractions.  
