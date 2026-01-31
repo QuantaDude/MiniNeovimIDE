@@ -4,11 +4,13 @@ set -euo pipefail
 # =============================
 # Config
 # =============================
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+
 PREFIX="$HOME/.local"
 BIN="$PREFIX/bin"
 LIB="$PREFIX/lib"
 OPT="/opt"
-NVIM_ARCHIVE="nvim-linux-x86_64.tar.gz"
+NVIM_ARCHIVE="$SCRIPT_DIR/nvim-linux-x86_64.tar.gz"
 NVIM_DIR="$OPT/neovim-nightly"
 
 mkdir -p "$BIN" "$LIB"
