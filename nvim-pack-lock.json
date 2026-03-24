@@ -24,6 +24,18 @@
       "rev": "9b935c218ddba02e5dc75c94f90143bce1f7c646",
       "src": "https://github.com/echasnovski/mini.nvim"
     },
+    "mini.starter": {
+      "rev": "8ee6ce6a4c9be47682516908557cc062c4d595a2",
+      "src": "https://github.com/echasnovski/mini.starter"
+    },
+    "nvim-dap": {
+      "rev": "e47878dcf1ccc30136b30d19ab19fe76946d61cd",
+      "src": "https://github.com/mfussenegger/nvim-dap"
+    },
+    "nvim-dap-ui": {
+      "rev": "cf91d5e2d07c72903d052f5207511bf7ecdb7122",
+      "src": "https://github.com/rcarriga/nvim-dap-ui"
+    },
     "nvim-httpyac": {
       "rev": "1e0dc03871178143bd32478565cc2d113ccec648",
       "src": "https://github.com/abidibo/nvim-httpyac"
@@ -31,6 +43,10 @@
     "nvim-lspconfig": {
       "rev": "419b082102fa813739588dd82e19a8b6b2442855",
       "src": "https://github.com/neovim/nvim-lspconfig"
+    },
+    "nvim-nio": {
+      "rev": "21f5324bfac14e22ba26553caf69ec76ae8a7662",
+      "src": "https://github.com/nvim-neotest/nvim-nio"
     },
     "nvim-treesitter": {
       "rev": "275b9fe801d56d5fea6d34f5bfea8bb24887b805",

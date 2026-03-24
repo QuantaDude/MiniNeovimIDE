@@ -1,4 +1,5 @@
 vim.pack.add({
+  "https://github.com/echasnovski/mini.starter",
   "https://github.com/echasnovski/mini.files",
   "https://github.com/echasnovski/mini.comment",
   "https://github.com/echasnovski/mini.icons",
@@ -9,6 +10,9 @@ vim.pack.add({
   "https://github.com/kristijanhusak/vim-dadbod-completion",
   "https://github.com/abidibo/nvim-httpyac",
   "https://github.com/nvim-telescope/telescope.nvim",
+  "https://github.com/mfussenegger/nvim-dap",
+  "https://github.com/nvim-neotest/nvim-nio",
+  "https://github.com/rcarriga/nvim-dap-ui",
   "https://github.com/nvim-lua/plenary.nvim",
   { src = "https://github.com/nvim-treesitter/nvim-treesitter", version = "main" },
 })
