@@ -1,5 +1,9 @@
-vim.cmd.packadd("everforest")
-vim.cmd.colorscheme("everforest")
+-- vim.cmd.packadd("gruvbox")
+vim.o.background = "dark"
+require("gruvbox").setup()
+vim.cmd.colorscheme("gruvbox")
+vim.cmd("colorscheme gruvbox")
+
 vim.cmd.packadd("vim-dadbod")
 vim.cmd.packadd("vim-dadbod-ui")
 

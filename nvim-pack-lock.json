@@ -4,6 +4,10 @@
       "rev": "b03a03148c8b34c24c96960b93da9c8883d11f54",
       "src": "https://github.com/sainnhe/everforest"
     },
+    "gruvbox.nvim": {
+      "rev": "154eb5ff5b96d0641307113fa385eaf0d36d9796",
+      "src": "https://github.com/ellisonleao/gruvbox.nvim"
+    },
     "mini.comment": {
       "rev": "a0c721115faff8d05505c0a12dab410084d9e536",
       "src": "https://github.com/echasnovski/mini.comment"

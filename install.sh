@@ -1,221 +1,382 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# =============================
-# Config
-# =============================
+# =========================================
+# MiniNeovimIDE Bootstrap Installer
+# =========================================
+
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 
-PREFIX="$HOME/.local"
-BIN="$PREFIX/bin"
-LIB="$PREFIX/lib"
-OPT="/opt"
-NVIM_ARCHIVE="$SCRIPT_DIR/nvim-linux-x86_64.tar.gz"
-NVIM_DIR="$OPT/neovim-nightly"
+PREFIX_="$HOME/.local"
+BIN="$PREFIX_/bin"
 
-mkdir -p "$BIN" "$LIB"
-export PATH="$BIN:$PATH"
+# =========================================
+# Elevate Privileges
+# =========================================
 
-GREEN="\033[0;32m"
-YELLOW="\033[1;33m"
-RED="\033[0;31m"
-NC="\033[0m"
+if [[ "$EUID" -ne 0 ]]; then
+    echo "[*] Requesting sudo privileges..."
+    exec sudo bash "$0" "$@"
+fi
 
-ok()   { echo -e "${GREEN}✔${NC} $1"; }
-warn() { echo -e "${YELLOW}⚠${NC} $1"; }
-fail() { echo -e "${RED}✘${NC} $1"; exit 1; }
+REAL_USER="${SUDO_USER:-$USER}"
+REAL_HOME="$(eval echo "~$REAL_USER")"
 
-have() { command -v "$1" >/dev/null 2>&1; }
+# =========================================
+# Gruvbox Theme
+# =========================================
 
-# =============================
-# Git
-# =============================
-install_git() {
-  if have git; then ok "git already installed"; return; fi
-  warn "git not found — attempting install"
+RED="\033[38;2;251;73;52m"
+GREEN="\033[38;2;184;187;38m"
+YELLOW="\033[38;2;250;189;47m"
+BLUE="\033[38;2;131;165;152m"
+PURPLE="\033[38;2;211;134;155m"
+AQUA="\033[38;2;142;192;124m"
+ORANGE="\033[38;2;254;128;25m"
 
-  if have apt; then
-    sudo apt update && sudo apt install -y git
-  elif have pacman; then
-    sudo pacman -S --noconfirm git
-  else
-    fail "No supported package manager found for git"
-  fi
+BOLD="\033[1m"
+RESET="\033[0m"
 
-  have git || fail "git install failed"
-  ok "git installed"
+ok() {
+    echo -e "${GREEN}${BOLD}[✔]${RESET} $1"
 }
 
-# =============================
-# nvm + Node.js (latest LTS)
-# =============================
-install_nvm() {
-  if [ -d "$HOME/.nvm" ]; then
-    ok "nvm already installed"
-  else
-    warn "Installing nvm"
-    curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-  fi
-
-  # shellcheck disable=SC1090
-  export NVM_DIR="$HOME/.nvm"
-  [ -s "$NVM_DIR/nvm.sh" ] || fail "nvm.sh not found"
-  . "$NVM_DIR/nvm.sh"
-
-  if have node && have npm; then
-    ok "node already installed via nvm"
-    return
-  fi
-
-  warn "Installing latest Node.js LTS via nvm"
-  nvm install --lts
-  nvm use --lts
-  nvm alias default 'lts/*'
-
-  have node || fail "node install failed"
-  have npm || fail "npm install failed"
-
-  ok "Node.js installed: $(node --version)"
+warn() {
+    echo -e "${YELLOW}${BOLD}[⚠]${RESET} $1"
 }
 
-# =============================
-# npm tools
-# =============================
-install_npm_tools() {
-  have npm || fail "npm not found"
-  npm install -g typescript typescript-language-server pyright prettier
-  ok "npm tools installed"
+fail() {
+    echo -e "${RED}${BOLD}[✘]${RESET} $1"
+    exit 1
 }
 
-# =============================
-# Lua + LuaJIT
-# =============================
-install_lua() {
-  if have lua && have luajit; then ok "lua & luajit already installed"; return; fi
-
-  warn "Installing Lua 5.4"
-  cd /tmp
-  curl -R -O https://www.lua.org/ftp/lua-5.4.6.tar.gz
-  tar zxf lua-5.4.6.tar.gz
-  cd lua-5.4.6
-  make linux test
-  make INSTALL_TOP="$PREFIX" install
-  ok "lua installed"
-
-  warn "Installing LuaJIT"
-  cd /tmp
-  git clone https://github.com/LuaJIT/LuaJIT.git
-  cd LuaJIT
-  make
-  make PREFIX="$PREFIX" install
-  ok "luajit installed"
+info() {
+    echo -e "${BLUE}${BOLD}[➜]${RESET} $1"
 }
 
-# =============================
-# Lua language server
-# =============================
-install_lua_ls() {
-  if have lua-language-server; then ok "lua-language-server already installed"; return; fi
-  warn "Installing lua-language-server"
-
-  cd "$LIB"
-  git clone https://github.com/LuaLS/lua-language-server.git
-  cd lua-language-server
-  ./make.sh
-  ln -sf "$LIB/lua-language-server/bin/lua-language-server" "$BIN/lua-language-server"
-
-  have lua-language-server || fail "lua-language-server install failed"
-  ok "lua-language-server installed"
+section() {
+    echo
+    echo -e "${ORANGE}${BOLD}========================================${RESET}"
+    echo -e "${ORANGE}${BOLD}$1${RESET}"
+    echo -e "${ORANGE}${BOLD}========================================${RESET}"
 }
 
-# =============================
-# clangd (GitHub)
-# =============================
-install_clangd() {
-  if have clangd; then
-    ok "clangd already installed"
-    return
-  fi
-
-  VERSION="21.1.8"
-  ARCHIVE="clangd-linux-${VERSION}.zip"
-  URL="https://github.com/llvm/llvm-project/releases/download/llvmorg-${VERSION}/${ARCHIVE}"
-
-  LLVM_DIR="$PREFIX/llvm"
-  TARGET_DIR="$LLVM_DIR/clangd-${VERSION}"
-
-  warn "Installing clangd ${VERSION}"
-  mkdir -p "$LLVM_DIR"
-
-  TMP="$(mktemp -d)"
-  curl -L "$URL" -o "$TMP/$ARCHIVE"
-  unzip -q "$TMP/$ARCHIVE" -d "$TMP"
-
-  # The zip extracts to clangd_<version>/
-  SRC_DIR="$TMP/clangd_${VERSION}"
-
-  if [ ! -d "$SRC_DIR/bin" ]; then
-    fail "Unexpected clangd archive layout"
-  fi
-
-  rm -rf "$TARGET_DIR"
-  mv "$SRC_DIR" "$TARGET_DIR"
-
-  ln -sf "$TARGET_DIR/bin/clangd" "$BIN/clangd"
-
-  rm -rf "$TMP"
-
-  have clangd || fail "clangd install failed"
-  ok "clangd installed ($(clangd --version | head -n1))"
+have() {
+    command -v "$1" >/dev/null 2>&1
 }
 
-# =============================
-# ripgrep
-# =============================
-install_rg() {
-  if have rg; then ok "ripgrep already installed"; return; fi
-  warn "Installing ripgrep"
+# =========================================
+# Banner
+# =========================================
 
-  cd /tmp
-  curl -LO https://github.com/BurntSushi/ripgrep/releases/latest/download/ripgrep-13.0.0-x86_64-unknown-linux-musl.tar.gz
-  tar xf ripgrep-*.tar.gz
-  cp ripgrep-*/rg "$BIN"
+clear
 
-  have rg || fail "ripgrep install failed"
-  ok "ripgrep installed"
+echo -e "${ORANGE}${BOLD}"
+
+cat << "EOF"
+
+███╗   ███╗██╗███╗   ██╗██╗
+████╗ ████║██║████╗  ██║██║
+██╔████╔██║██║██╔██╗ ██║██║
+██║╚██╔╝██║██║██║╚██╗██║██║
+██║ ╚═╝ ██║██║██║ ╚████║██║
+╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝
+
+███╗   ██╗███████╗ ██████╗ 
+████╗  ██║██╔════╝██╔═══██╗
+██╔██╗ ██║█████╗  ██║   ██║
+██║╚██╗██║██╔══╝  ██║   ██║
+██║ ╚████║███████╗╚██████╔╝
+╚═╝  ╚═══╝╚══════╝ ╚═════╝ 
+
+██╗██████╗ ███████╗
+██║██╔══██╗██╔════╝
+██║██║  ██║█████╗  
+██║██║  ██║██╔══╝  
+██║██████╔╝███████╗
+╚═╝╚═════╝ ╚══════╝
+
+EOF
+
+echo -e "${RESET}"
+
+# =========================================
+# Detect Arch Linux
+# =========================================
+
+section "Detecting System"
+
+if ! command -v pacman >/dev/null 2>&1; then
+    fail "This installer only supports Arch Linux based distros"
+fi
+
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    DISTRO="${ID:-arch}"
+else
+    DISTRO="arch"
+fi
+
+ok "Detected Arch-based distro: $DISTRO"
+
+# =========================================
+# Refresh Database
+# =========================================
+
+section "Refreshing Pacman Database"
+
+pacman -Sy --noconfirm
+
+ok "Pacman database updated"
+
+# =========================================
+# Install Packages
+# =========================================
+
+install_packages() {
+    section "Installing Official Repository Packages"
+
+    PACMAN_PACKAGES=(
+        git
+        curl
+        wget
+        unzip
+        tar
+        gzip
+        make
+        gcc
+        clang
+        cmake
+        ninja
+        python
+        python-pip
+        nodejs
+        npm
+        lua
+        luajit
+        ripgrep
+        fd
+        neovim
+        gdb
+        lldb
+        xclip
+        wl-clipboard
+        tree-sitter
+    )
+
+    pacman -S --needed --noconfirm "${PACMAN_PACKAGES[@]}"
+
+    ok "Official packages installed"
+
+    # =========================================
+    # npm Packages
+    # =========================================
+
+    section "Installing npm Packages"
+
+    npm install -g \
+        bash-language-server \
+        pyright \
+        typescript \
+        typescript-language-server \
+        prettier \
+        tree-sitter-cli
+
+    ok "npm packages installed"
+
+    # =========================================
+    # AUR Packages
+    # =========================================
+
+    AUR_PACKAGES=(
+        lua-language-server
+    )
+
+    section "Checking AUR Helper"
+
+    if command -v yay >/dev/null 2>&1; then
+        ok "yay detected"
+
+        section "Installing AUR Packages"
+
+        sudo -u "$REAL_USER" yay -S --needed --noconfirm "${AUR_PACKAGES[@]}"
+
+        ok "AUR packages installed"
+
+    else
+        warn "yay is not installed"
+        echo
+        echo "Install yay manually:"
+        echo
+        echo "    sudo pacman -S --needed git base-devel"
+        echo "    git clone https://aur.archlinux.org/yay.git"
+        echo "    cd yay"
+        echo "    makepkg -si"
+        echo
+        warn "Re-run this installer after installing yay"
+        exit 1
+    fi
 }
 
-# =============================
-# Neovim nightly
-# =============================
-install_nvim() {
-  [[ -f "$NVIM_ARCHIVE" ]] || fail "Missing $NVIM_ARCHIVE"
+# =========================================
+# Setup User Local Bin
+# =========================================
 
-  warn "Installing Neovim nightly"
-  TMP=$(mktemp -d)
-  tar -xzf "$NVIM_ARCHIVE" -C "$TMP"
+setup_local_bin() {
+    section "Setting Up ~/.local/bin"
 
-  sudo rm -rf "$NVIM_DIR"
-  sudo mv "$TMP/nvim-linux-x86_64" "$NVIM_DIR"
-  sudo ln -sf "$NVIM_DIR/bin/nvim" /usr/local/bin/nvim
+    sudo -u "$REAL_USER" mkdir -p "$REAL_HOME/.local/bin"
 
-  nvim --version | head -n1
-  ok "Neovim installed"
+    SHELL_RC=""
+
+    if [[ -f "$REAL_HOME/.bashrc" ]]; then
+        SHELL_RC="$REAL_HOME/.bashrc"
+    elif [[ -f "$REAL_HOME/.zshrc" ]]; then
+        SHELL_RC="$REAL_HOME/.zshrc"
+    fi
+
+    if [[ -n "$SHELL_RC" ]]; then
+        if ! grep -q 'PATH="$HOME/.local/bin:$PATH"' "$SHELL_RC"; then
+            echo '' >> "$SHELL_RC"
+            echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$SHELL_RC"
+
+            ok "Added ~/.local/bin to PATH in $(basename "$SHELL_RC")"
+        else
+            ok "~/.local/bin already in PATH"
+        fi
+    else
+        warn "No shell rc file found"
+    fi
 }
 
-# =============================
-# Run
-# =============================
-install_git
-install_nvm
-install_npm_tools
-install_lua
-install_lua_ls
-install_clangd
-install_rg
-install_nvim
+configure_neovim() {
+    section "Configuring Neovim"
+
+    CONFIG_DIR="$REAL_HOME/.config"
+    NVIM_DIR="$CONFIG_DIR/nvim"
+
+    sudo -u "$REAL_USER" mkdir -p "$CONFIG_DIR"
+
+    echo
+    read -rp "Enter nvim alias (nvim default): " NVIM_ALIAS
+
+    NVIM_ALIAS="${NVIM_ALIAS:-nvim}"
+
+    info "Selected alias: $NVIM_ALIAS"
+
+    # =========================================
+    # Create Alias
+    # =========================================
+
+    if [[ "$NVIM_ALIAS" != "nvim" ]]; then
+        ln -sf "$(command -v nvim)" "/usr/local/bin/$NVIM_ALIAS"
+
+        ok "Alias created: $NVIM_ALIAS -> nvim"
+    else
+        ok "Using default nvim command"
+    fi
+
+    # =========================================
+    # Symlink Config
+    # =========================================
+
+if [[ -L "$NVIM_DIR" || -d "$NVIM_DIR" ]]; then
+    warn "~/.config/nvim already exists"
+
+    read -rp "Replace existing config? [y/N]: " REPLACE_NVIM
+
+    if [[ "$REPLACE_NVIM" =~ ^[Yy]$ ]]; then
+        sudo -u "$REAL_USER" rm -rf "$NVIM_DIR"
+    else
+        warn "Skipping Neovim config install"
+        return
+    fi
+fi
+
+sudo -u "$REAL_USER" mkdir -p "$NVIM_DIR"
+
+info "Linking configuration files"
+
+for item in "$SCRIPT_DIR"/*; do
+    base="$(basename "$item")"
+
+    if [[ "$base" == "$(basename "$0")" ]]; then
+        continue
+    fi
+
+    sudo -u "$REAL_USER" ln -sf "$item" "$NVIM_DIR/$base"
+done
+
+    chown -R "$REAL_USER:$REAL_USER" "$NVIM_DIR"
+
+    ok "Neovim config linked"
+}
+# =========================================
+# Verify Installations
+# =========================================
+
+verify_tools() {
+    section "Verifying Tools"
+
+TOOLS=(
+    git
+    curl
+    nvim
+    node
+    npm
+    lua
+    luajit
+    clang
+    clangd
+    rg
+    fd
+    gdb
+    lldb
+)
+    for tool in "${TOOLS[@]}"; do
+        if have "$tool"; then
+            ok "$tool detected"
+        else
+            fail "$tool missing"
+        fi
+    done
+}
+
+# =========================================
+# Versions
+# =========================================
+
+show_versions() {
+    section "Installed Versions"
+
+    echo -e "${AQUA}Neovim:${RESET} $(nvim --version | head -n1)"
+    echo -e "${AQUA}Node:${RESET} $(node --version)"
+    echo -e "${AQUA}npm:${RESET} $(npm --version)"
+    echo -e "${AQUA}Lua:${RESET} $(lua -v 2>&1)"
+    echo -e "${AQUA}LuaJIT:${RESET} $(luajit -v 2>&1)"
+    echo -e "${AQUA}clangd:${RESET} $(clangd --version | head -n1)"
+    echo -e "${AQUA}gdb:${RESET} $(gdb --version | head -n1)"
+}
+
+# =========================================
+# Main
+# =========================================
+
+section "Bootstrap Starting"
+
+install_packages
+setup_local_bin
+verify_tools
+configure_neovim
+show_versions
 
 echo
-ok "Bootstrap complete"
-echo "Ensure ~/.local/bin is in PATH"
 
+section "Bootstrap Complete"
+
+ok "MiniNeovimIDE installed successfully"
+
+info "Reboot your shell or run:"
+echo
+echo "    source ~/.bashrc"
+echo
