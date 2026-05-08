@@ -14,7 +14,7 @@ print("nvim-minimal loaded")
 
 
 vim.lsp.handlers["textDocument/hover"] =
-    vim.lsp.with(vim.lsp.handlers.hover, {
+    vim.lsp.buf.hover({
       border = "rounded",
       max_width = 80,
     })
