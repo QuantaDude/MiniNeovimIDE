@@ -20,6 +20,23 @@ require("mini.diff").setup({
     delete = { text = "" },
   },
 })
+
+local wk = require("which-key")
+
+wk.setup({
+  preset = "modern",
+  delay = 300,
+
+  win = {
+    border = "rounded",
+  },
+})
+
+wk.add({
+  { "<leader>f", group = "file" },
+  { "<leader>g", group = "git" },
+  { "<leader>b", group = "buffer" },
+})
 vim.keymap.set("n", "<leader>gd", function()
   require("mini.diff").toggle()
 end, { desc = "Toggle git diff" })

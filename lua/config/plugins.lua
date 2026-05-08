@@ -14,5 +14,6 @@ vim.pack.add({
   "https://github.com/nvim-neotest/nvim-nio",
   "https://github.com/rcarriga/nvim-dap-ui",
   "https://github.com/nvim-lua/plenary.nvim",
+  "https://github.com/folke/which-key.nvim",
   { src = "https://github.com/nvim-treesitter/nvim-treesitter", version = "main" },
 })
