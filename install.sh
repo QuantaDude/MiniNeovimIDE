@@ -69,8 +69,6 @@ have() {
 # Banner
 # =========================================
 
-clear
-
 echo -e "${ORANGE}${BOLD}"
 
 cat << "EOF"
