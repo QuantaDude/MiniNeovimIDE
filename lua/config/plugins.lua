@@ -4,6 +4,8 @@ vim.pack.add({
   "https://github.com/echasnovski/mini.comment",
   "https://github.com/echasnovski/mini.icons",
   "https://github.com/echasnovski/mini.diff",
+  "https://github.com/echasnovski/mini.statusline",
+  "https://github.com/echasnovski/mini-git",
   "https://github.com/ellisonleao/gruvbox.nvim",
   "https://github.com/tpope/vim-dadbod",
   "https://github.com/kristijanhusak/vim-dadbod-ui",

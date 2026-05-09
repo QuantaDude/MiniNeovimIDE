@@ -8,6 +8,10 @@
       "rev": "154eb5ff5b96d0641307113fa385eaf0d36d9796",
       "src": "https://github.com/ellisonleao/gruvbox.nvim"
     },
+    "mini-git": {
+      "rev": "a007cc40a4585c4f54787ddcf07295c2689daeb4",
+      "src": "https://github.com/echasnovski/mini-git"
+    },
     "mini.comment": {
       "rev": "a0c721115faff8d05505c0a12dab410084d9e536",
       "src": "https://github.com/echasnovski/mini.comment"
@@ -31,6 +35,10 @@
     "mini.starter": {
       "rev": "8ee6ce6a4c9be47682516908557cc062c4d595a2",
       "src": "https://github.com/echasnovski/mini.starter"
+    },
+    "mini.statusline": {
+      "rev": "b456bfe845e475e9cec065b7a9a1ef657ad2f41b",
+      "src": "https://github.com/echasnovski/mini.statusline"
     },
     "nvim-dap": {
       "rev": "e47878dcf1ccc30136b30d19ab19fe76946d61cd",

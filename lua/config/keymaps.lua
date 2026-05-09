@@ -15,6 +15,8 @@ vim.keymap.set("n", "<leader>f", function()
   require("config.format").format_buffer()
 end, { desc = "Format buffer" })
 
+vim.keymap.set("n", "<leader>q", "<cmd>quit<cr>", { desc = "Quit current window" })
+vim.keymap.set("n", "<leader>Q", "<cmd>quitall<cr>", { desc = "Quit MiniNvimIDE" })
 
 vim.keymap.set("i", "<C-Space>", "<C-x><C-o>", { desc = "LSP completion" })
 
@@ -28,7 +30,21 @@ vim.keymap.set("n", "<C-h>", "<C-w>h")
 vim.keymap.set("n", "<C-j>", "<C-w>j")
 vim.keymap.set("n", "<C-k>", "<C-w>k")
 vim.keymap.set("n", "<C-l>", "<C-w>l")
-vim.keymap.set("n", "<leader>w", "<cmd>write<cr>", { desc = "Save buffer" })
+vim.keymap.set("n", "<leader>bw", "<cmd>write<cr>", { desc = "Save buffer" })
+vim.keymap.set("n", "<leader>bW", "<cmd>wall<cr>", { desc = "Save ALL buffers" })
+vim.keymap.set("n", "<leader>bc", "<cmd>bdelete<cr>", { desc = "Close buffer" })
+
+vim.keymap.set("n", "<leader>ba", function()
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_is_loaded(buf)
+        and vim.api.nvim_buf_get_option(buf, "modified") then
+      vim.notify("Unsaved buffers exist", vim.log.levels.WARN)
+      return
+    end
+  end
+
+  vim.cmd("%bd")
+end, { desc = "Close all buffers (safe)" })
 
 vim.keymap.set("n", "<leader>/", function()
   local line = vim.fn.line(".")
@@ -83,17 +99,6 @@ vim.keymap.set("n", "[w", function()
   vim.diagnostic.goto_prev({ severity = vim.diagnostic.severity.WARN })
 end, { desc = "Prev warning" })
 
-vim.keymap.set("n", "<leader>ba", function()
-  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-    if vim.api.nvim_buf_is_loaded(buf)
-        and vim.api.nvim_buf_get_option(buf, "modified") then
-      vim.notify("Unsaved buffers exist", vim.log.levels.WARN)
-      return
-    end
-  end
-
-  vim.cmd("%bd")
-end, { desc = "Close all buffers (safe)" })
 
 vim.keymap.set("n", "<leader>tn", function()
   vim.cmd("enew | terminal")

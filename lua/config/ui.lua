@@ -1,15 +1,14 @@
--- vim.cmd.packadd("gruvbox")
-vim.o.background = "dark"
 require("gruvbox").setup()
 vim.cmd.colorscheme("gruvbox")
-vim.cmd("colorscheme gruvbox")
+-- vim.cmd("colorscheme gruvbox")
 
-vim.cmd.packadd("vim-dadbod")
-vim.cmd.packadd("vim-dadbod-ui")
+-- vim.cmd.packadd("vim-dadbod")
+-- vim.cmd.packadd("vim-dadbod-ui")
 
 require("mini.icons").setup()
 require("mini.comment").setup()
 require("mini.files").setup()
+require('mini.statusline').setup()
 require("mini.diff").setup({
   view = {
     style = "sign", -- line-based highlights
@@ -41,6 +40,45 @@ vim.keymap.set("n", "<leader>gd", function()
   require("mini.diff").toggle()
 end, { desc = "Toggle git diff" })
 
+
+
+vim.o.showtabline = 2
+vim.o.tabline = "%!v:lua.MyTabLine()"
+
+function MyTabLine()
+  local s = ""
+
+  local current = vim.api.nvim_get_current_buf()
+
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.bo[buf].buflisted then
+      local name = vim.fn.fnamemodify(
+        vim.api.nvim_buf_get_name(buf),
+        ":t"
+      )
+
+      if name == "" then
+        name = "[No Name]"
+      end
+
+      -- Highlight current buffer
+      if buf == current then
+        s = s .. "%#TabLineSel#"
+      else
+        s = s .. "%#TabLine#"
+      end
+
+      -- Click target
+      s = s .. "%" .. buf .. "T"
+
+      s = s .. " " .. name .. " "
+    end
+  end
+
+  s = s .. "%#TabLineFill#"
+
+  return s
+end
 
 require("mini.starter").setup({
   header = table.concat({

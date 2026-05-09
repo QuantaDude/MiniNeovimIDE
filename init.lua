@@ -1,6 +1,7 @@
 -- ~/.config/nvim-minimal/init.lua
 require("config.options")
 require("config.plugins")
+require("config.git")
 require("config.treesitter")
 require("config.lsp")
 require("config.completion")

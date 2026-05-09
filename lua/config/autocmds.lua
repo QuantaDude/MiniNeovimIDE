@@ -62,24 +62,35 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
+require("nvim-httpyac").setup()
+
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "http",
   callback = function()
-    -- load plugin only now
-    vim.cmd.packadd("nvim-httpyac")
-
     -- setup (safe to call multiple times)
-    require("nvim-httpyac").setup({})
 
+    -- look for .env files
+    -- vim.api.nvim_cmd(c>
+    --   cmd = "NvimHttpYacEnv",
+    --   -- args = { "dev" },
+    -- }, {})
     -- buffer-local keymaps
     local opts = { buffer = true, desc = "HTTP request (httpyac)" }
 
     vim.keymap.set("n", "<leader>rr", function()
-      require("nvim-httpyac").run()
+      require("nvim-httpyac").exec_httpyac()
     end, opts)
 
-    vim.keymap.set("v", "<leader>rr", function()
-      require("nvim-httpyac").run()
-    end, opts)
+    vim.keymap.set("n", "<leader>rd", function()
+      vim.api.nvim_cmd({
+        cmd = "NvimHttpYacClear"
+      }, {})
+    end, { desc = "Delete HTTPYac environment vars" })
+
+    -- vim.keymap.set("n"c> "<leader>rl", function()
+    --   vim.api.nvim_cmd({
+    --     cmd = "NvimHttpYacEnv"
+    --   })
+    -- end, { desc = "Load HttpYac environment vars from file" })
   end,
 })
