@@ -1,3 +1,184 @@
+local function map(mode, lhs, rhs, desc, extra)
+  vim.keymap.set(mode, lhs, rhs, vim.tbl_extend("force", {
+    noremap = true,
+    silent = true,
+    desc = desc,
+  }, extra or {}))
+end
+
+local function setup_snippets()
+  local ls = require("luasnip")
+  local s = ls.snippet
+  local i = ls.insert_node
+  local f = ls.function_node
+  local fmt = require("luasnip.extras.fmt").fmt
+  local rep = require("luasnip.extras").rep
+
+
+
+  ls.config.set_config({
+    history = true,
+    updateevents = "TextChanged,TextChangedI",
+    enable_autosnippets = false,
+  })
+
+
+  require("luasnip.loaders.from_vscode").lazy_load()
+  require("luasnip.loaders.from_lua").lazy_load({
+    paths = vim.fn.stdpath("config") .. "/lua/snippets",
+  })
+  local function file_component_name()
+    local name = vim.fn.expand("%:t:r")
+    if name == "" then
+      return "Component"
+    end
+
+    return name:gsub("[-_](%w)", function(char)
+      return char:upper()
+    end):gsub("^%l", string.upper)
+  end
+
+  ls.filetype_extend("javascriptreact", { "javascript", "html", "css" })
+  ls.filetype_extend("typescriptreact", { "typescript", "javascriptreact", "html", "css" })
+  ls.filetype_extend("typescript", { "javascript" })
+
+
+
+  ls.add_snippets("typescript", {
+    s("nestcontroller", fmt([[
+import {{ Controller, Get }} from "@nestjs/common";
+import {{ {}Service }} from "./{}.service";
+
+@Controller("{}")
+export class {}Controller {{
+  constructor(private readonly {}Service: {}Service) {{}}
+
+  @Get()
+  findAll() {{
+    return this.{}Service.findAll();
+  }}
+}}
+]], {
+      i(1, "Users"),
+      i(2, "users"),
+      rep(2),
+      rep(1),
+      i(3, "users"),
+      rep(1),
+      rep(3),
+    })),
+    s("nestservice", fmt([[
+import {{ Injectable }} from "@nestjs/common";
+
+@Injectable()
+export class {}Service {{
+  findAll() {{
+    return [];
+  }}
+
+  findOne(id: string) {{
+    return {{ id }};
+  }}
+}}
+]], {
+      i(1, "Users"),
+    })),
+    s("nestmodule", fmt([[
+import {{ Module }} from "@nestjs/common";
+import {{ {}Controller }} from "./{}.controller";
+import {{ {}Service }} from "./{}.service";
+
+@Module({{
+  controllers: [{}Controller],
+  providers: [{}Service],
+  exports: [{}Service],
+}})
+export class {}Module {{}}
+]], {
+      i(1, "Users"),
+      i(2, "users"),
+      rep(1),
+      rep(2),
+      rep(1),
+      rep(1),
+      rep(1),
+      rep(1),
+    })),
+    s("dto", fmt([[
+import {{ IsString }} from "class-validator";
+
+export class {}Dto {{
+  @IsString()
+  {}: string;
+}}
+]], {
+      i(1, "CreateUser"),
+      i(2, "name"),
+    })),
+  })
+
+  map({ "i", "s" }, "<Tab>", function()
+    if ls.expand_or_jumpable() then
+      ls.expand_or_jump()
+    else
+      vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Tab>", true, false, true), "n", false)
+    end
+  end, "Expand or jump snippet")
+
+  map({ "i", "s" }, "<S-Tab>", function()
+    if ls.jumpable(-1) then
+      ls.jump(-1)
+    else
+      vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<S-Tab>", true, false, true), "n", false)
+    end
+  end, "Jump backward in snippet")
+
+  map("n", "<leader>sl", "<cmd>LuaSnipListAvailable<cr>", "List available snippets")
+end
+
+
+setup_snippets()
+-- require("mini.snippets").setup()
+require("blink.cmp").setup({
+  keymap = {
+    preset = "default",
+
+    ["<Tab>"] = { "select_next", "snippet_forward", "fallback" },
+    ["<S-Tab>"] = { "select_prev", "snippet_backward", "fallback" },
+
+    ["<CR>"] = { "accept", "fallback" },
+
+    ["<C-Space>"] = { "show", "show_documentation", "hide_documentation" },
+  },
+
+  appearance = {
+    nerd_font_variant = "mono",
+  },
+
+  completion = {
+    documentation = {
+      auto_show = true,
+    },
+  },
+
+  sources = {
+    default = {
+      "lsp",
+      "path",
+      "buffer",
+      "snippets",
+    },
+  },
+
+  fuzzy = {
+    implementation = "prefer_rust_with_warning",
+  },
+  snippets = {
+    preset = "luasnip",
+    -- we can have  preset = "mini_snippets" too
+  },
+})
+
 vim.cmd.packadd("vim-dadbod-completion")
 
 -- Native LSP completion

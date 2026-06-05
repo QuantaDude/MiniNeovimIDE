@@ -94,3 +94,29 @@ vim.api.nvim_create_autocmd("FileType", {
     -- end, { desc = "Load HttpYac environment vars from file" })
   end,
 })
+
+
+-- User Commands --
+--
+vim.api.nvim_create_user_command("PrependLines", function(opts)
+  vim.cmd(("'<,'>normal I%s"):format(opts.args))
+end, {
+  range = true,
+  nargs = 1,
+})
+vim.api.nvim_create_user_command("AppendLines", function(opts)
+  vim.cmd(("'<,'>normal A%s"):format(opts.args))
+end, {
+  range = true,
+  nargs = 1,
+})
+
+vim.api.nvim_create_user_command("PrefixWord", function(opts)
+  local word = vim.fn.expand("<cword>")
+  vim.cmd(string.format("%%s/\\<%s\\>/%s&/g", word, opts.args))
+end, { nargs = 1 })
+
+vim.api.nvim_create_user_command("SuffixWord", function(opts)
+  local word = vim.fn.expand("<cword>")
+  vim.cmd(string.format("%%s/\\<%s\\>/&%s/g", word, opts.args))
+end, { nargs = 1 })

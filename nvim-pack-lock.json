@@ -1,8 +1,29 @@
 {
   "plugins": {
+    "LuaSnip": {
+      "rev": "0abc8f390b278c3b4aabc4c004ac8a088b65cf24",
+      "src": "https://github.com/L3MON4D3/LuaSnip"
+    },
+    "blink.cmp": {
+      "rev": "78336bc89ee5365633bcf754d93df01678b5c08f",
+      "src": "https://github.com/saghen/blink.cmp",
+      "version": ">=0.0.0"
+    },
+    "ccc.nvim": {
+      "rev": "9d1a256e006decc574789dfc7d628ca11644d4c2",
+      "src": "https://github.com/uga-rosa/ccc.nvim"
+    },
+    "emmet-vim": {
+      "rev": "92ef2f74f4093edc99db5e9e4cf7e40116a85bd6",
+      "src": "https://github.com/mattn/emmet-vim"
+    },
     "everforest": {
       "rev": "b03a03148c8b34c24c96960b93da9c8883d11f54",
       "src": "https://github.com/sainnhe/everforest"
+    },
+    "friendly-snippets": {
+      "rev": "6cd7280adead7f586db6fccbd15d2cac7e2188b9",
+      "src": "https://github.com/rafamadriz/friendly-snippets"
     },
     "gruvbox.nvim": {
       "rev": "154eb5ff5b96d0641307113fa385eaf0d36d9796",
@@ -16,6 +37,10 @@
       "rev": "a0c721115faff8d05505c0a12dab410084d9e536",
       "src": "https://github.com/echasnovski/mini.comment"
     },
+    "mini.completion": {
+      "rev": "04abe6fc7860858785ba63c435d76bf5b8b64b5f",
+      "src": "https://github.com/echasnovski/mini.completion"
+    },
     "mini.diff": {
       "rev": "6010e588e9ed14724880f244d7fa3df8f0be3f46",
       "src": "https://github.com/echasnovski/mini.diff"
@@ -28,9 +53,17 @@
       "rev": "efc85e42262cd0c9e1fdbf806c25cb0be6de115c",
       "src": "https://github.com/echasnovski/mini.icons"
     },
+    "mini.notify": {
+      "rev": "9e68ab0a54f90567b4fec2de22c851dba8480439",
+      "src": "https://github.com/echasnovski/mini.notify"
+    },
     "mini.nvim": {
       "rev": "9b935c218ddba02e5dc75c94f90143bce1f7c646",
       "src": "https://github.com/echasnovski/mini.nvim"
+    },
+    "mini.snippets": {
+      "rev": "9a08aa14e02abb790c823a622d7d6c736cbbe65a",
+      "src": "https://github.com/echasnovski/mini.snippets"
     },
     "mini.starter": {
       "rev": "8ee6ce6a4c9be47682516908557cc062c4d595a2",
@@ -39,6 +72,14 @@
     "mini.statusline": {
       "rev": "b456bfe845e475e9cec065b7a9a1ef657ad2f41b",
       "src": "https://github.com/echasnovski/mini.statusline"
+    },
+    "nord.nvim": {
+      "rev": "87394d4fc35c901bbe38326a78d31ab1ead826b6",
+      "src": "https://github.com/gbprod/nord.nvim"
+    },
+    "nvim-colorizer.lua": {
+      "rev": "664c0b7cea1de71f8b65dfe951b7996fc3e6ccde",
+      "src": "https://github.com/NvChad/nvim-colorizer.lua"
     },
     "nvim-dap": {
       "rev": "e47878dcf1ccc30136b30d19ab19fe76946d61cd",
@@ -64,6 +105,10 @@
       "rev": "275b9fe801d56d5fea6d34f5bfea8bb24887b805",
       "src": "https://github.com/nvim-treesitter/nvim-treesitter",
       "version": "'main'"
+    },
+    "nvim-ts-autotag": {
+      "rev": "88c1453db4ba7dd24131086fe51fdf74e587d275",
+      "src": "https://github.com/windwp/nvim-ts-autotag"
     },
     "plenary.nvim": {
       "rev": "b9fd5226c2f76c951fc8ed5923d85e4de065e509",

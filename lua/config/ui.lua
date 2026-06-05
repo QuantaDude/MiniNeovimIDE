@@ -1,6 +1,10 @@
-require("gruvbox").setup()
-vim.cmd.colorscheme("gruvbox")
+-- require("gruvbox").setup()
+-- vim.cmd.colorscheme("gruvbox")
 -- vim.cmd("colorscheme gruvbox")
+
+
+require("nord").setup()
+vim.cmd.colorscheme("nord")
 
 -- vim.cmd.packadd("vim-dadbod")
 -- vim.cmd.packadd("vim-dadbod-ui")
@@ -8,6 +12,7 @@ vim.cmd.colorscheme("gruvbox")
 require("mini.icons").setup()
 require("mini.comment").setup()
 require("mini.files").setup()
+require("mini.notify").setup()
 require('mini.statusline').setup()
 require("mini.diff").setup({
   view = {
@@ -35,6 +40,9 @@ wk.add({
   { "<leader>f", group = "file" },
   { "<leader>g", group = "git" },
   { "<leader>b", group = "buffer" },
+  { "<leader>c", group = "code/color" },
+  { "<leader>r", group = "REST" },
+  { "<leader>s", group = "snippets" },
 })
 vim.keymap.set("n", "<leader>gd", function()
   require("mini.diff").toggle()

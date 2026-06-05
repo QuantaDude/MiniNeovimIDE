@@ -1,5 +1,7 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
+vim.o.termguicolors = true
+
 -- MUST be set before colorscheme
 vim.o.background = "dark"
 

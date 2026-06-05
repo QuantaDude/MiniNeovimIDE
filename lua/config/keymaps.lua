@@ -24,6 +24,14 @@ vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })
 vim.keymap.set("n", "gr", vim.lsp.buf.references, { desc = "References" })
 vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { desc = "Implementation" })
 vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, { desc = "Rename symbol" })
+
+vim.keymap.set("n", "<leader>rr", [[:%s/\<<C-r><C-w>\>//g<Left><Left>]], {
+  desc = "Replace all occurrences in buffer"
+})
+vim.keymap.set("x", "<leader>r", [[:s/\<<C-r><C-w>\>//gc<Left><Left><Left>]], {
+  desc = "Rename word in selection"
+})
+
 vim.keymap.set("n", "<leader>v", "<cmd>vsplit<cr>", { desc = "Vertical split" })
 vim.keymap.set("n", "<leader>h", "<cmd>split<cr>", { desc = "Horizontal split" })
 vim.keymap.set("n", "<C-h>", "<C-w>h")
@@ -164,3 +172,76 @@ vim.keymap.set("n", "<leader>dt", dap.terminate, { desc = "Terminate" })
 vim.keymap.set("n", "<leader>de", function()
   require("dapui").eval(nil, { enter = true })
 end, { desc = "Debug: eval under cursor" })
+
+vim.keymap.set("n", "<leader>I", function()
+  local count = vim.v.count1
+
+  vim.cmd("normal! V")
+  vim.cmd("normal! " .. (count - 1) .. "j")
+
+  -- Equivalent to pressing Shift-I in Visual Block mode
+  vim.api.nvim_feedkeys(
+    vim.api.nvim_replace_termcodes("I", true, false, true),
+    "x",
+    false
+  )
+end, { desc = "Insert at beginning of N lines" })
+
+vim.keymap.set("n", "<leader>A", function()
+  local count = vim.v.count1
+
+  vim.cmd("normal! V")
+  vim.cmd("normal! " .. (count - 1) .. "j")
+
+  vim.api.nvim_feedkeys(
+    vim.api.nvim_replace_termcodes("A", true, false, true),
+    "x",
+    false
+  )
+end, { desc = "Append to end of N lines" })
+
+local term = vim.api.nvim_replace_termcodes
+
+vim.keymap.set("n", "<leader>i", function()
+  local keys = term("<C-v>" .. (vim.v.count1 - 1) .. "jI", true, false, true)
+  vim.api.nvim_feedkeys(keys, "n", false)
+end)
+
+vim.keymap.set("n", "<leader>a", function()
+  local keys = term("<C-v>" .. (vim.v.count1 - 1) .. "j$A", true, false, true)
+  vim.api.nvim_feedkeys(keys, "n", false)
+end)
+
+vim.keymap.set("n", "<leader>{p", function()
+  local word = vim.fn.expand("<cword>")
+  local prefix = vim.fn.input("Prefix: ")
+
+  vim.cmd(string.format(
+    [[?{?+1,/}/-1s/\<%s\>/%s&/g]],
+    word,
+    prefix
+  ))
+end, { desc = "Prefix word inside {}" })
+
+vim.keymap.set("n", "<leader>{s", function()
+  local word = vim.fn.expand("<cword>")
+  local suffix = vim.fn.input("Suffix: ")
+
+  vim.cmd(string.format(
+    [[?{?+1,/}/-1s/\<%s\>/&%s/g]],
+    word,
+    suffix
+  ))
+end, { desc = "Suffix word inside {}" })
+
+vim.keymap.set("x", "<leader>p", function()
+  vim.cmd("normal! y")
+  local word = vim.fn.getreg('"')
+  local prefix = vim.fn.input("Prefix: ")
+
+  vim.cmd(string.format(
+    [["<,'>s/\<%s\>/%s&/g]],
+    vim.pesc(word),
+    prefix
+  ))
+end)

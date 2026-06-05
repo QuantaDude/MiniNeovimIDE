@@ -10,6 +10,7 @@ require("config.ui")
 require("config.pickers")
 require("config.autocmds")
 require("config.keymaps")
+require("config.webdev").setup()
 require("config.debugger")
 print("nvim-minimal loaded")
 
